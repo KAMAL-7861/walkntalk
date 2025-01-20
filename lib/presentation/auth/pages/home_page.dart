@@ -53,6 +53,12 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   @override
+  void initState() {
+    // get user profile
+     ProfileImageProvider().loadProfileImage();
+    super.initState();
+  }
+  @override
   Widget build(BuildContext context) {
     List<Widget> _widgetOptions = [
       HomeScreen(logoutFunction: _logout), // Pass logout function to HomeScreen

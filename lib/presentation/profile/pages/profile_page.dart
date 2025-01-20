@@ -16,6 +16,28 @@ class ProfileImageProvider extends ChangeNotifier {
     _profileImagePath = path;
     notifyListeners(); // Notify listeners when the path changes
   }
+//fetches profile image on  init
+  //todo: refator this code  as well
+  ///get pofile image code
+  Future<void> loadProfileImage() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final  photoUrl = user.photoURL;
+      if (photoUrl != null) {
+        final profileDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+        if (profileDoc.exists) {
+          final imageUrl = profileDoc.data()?['profileImageUrl'] as String?;
+          if (imageUrl != null) {
+            _profileImagePath = imageUrl;
+          }
+        }
+      }
+
+    }
+  }
 }
 
 // Wrap your app with the ChangeNotifierProvider

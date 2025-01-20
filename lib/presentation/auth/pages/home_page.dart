@@ -2,6 +2,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:walkntalk/presentation/activity/activity_page.dart';
 import 'package:walkntalk/presentation/auth/pages/login.dart';
 import 'package:walkntalk/presentation/profile/pages/edit_profile_page.dart';
@@ -19,13 +20,17 @@ class _MyHomePageState extends State<MyHomePage> {
   // Logout the user
   void _logout() async {
     try {
-      await FirebaseAuth.instance.signOut(); // Sign out the user
+      //todo: make proper file and do that  function there
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('isLoggedIn', false);
+      await FirebaseAuth.instance.signOut();
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
             builder: (context) => MyLogin()), // Navigate to login page
       );
     } catch (e) {
+      //todo: create  separate reusable widget so it could be used anywhere
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to log out. Please try again.')),
       );
@@ -69,6 +74,7 @@ class _MyHomePageState extends State<MyHomePage> {
           child: _widgetOptions.elementAt(_selectedIndex),
         ),
       ),
+      //todo: attempt to store routes  in separate file
       bottomNavigationBar: BottomNavigationBar(
         items: const [
           BottomNavigationBarItem(

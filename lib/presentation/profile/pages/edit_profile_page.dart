@@ -32,7 +32,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         // Update the name
-        await user.updateProfile(displayName: _nameController.text);
+        await user.updateDisplayName(_nameController.text.isNotEmpty ? _nameController.text : 'User Name');
 
         // Update the email with verification
         if (_emailController.text != user.email) {

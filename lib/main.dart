@@ -1,54 +1,45 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:walkntalk/firebase_options.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:walkntalk/presentation/auth/pages/forgot_password.dart';
-import 'package:walkntalk/presentation/auth/pages/google.dart';
-import 'package:walkntalk/presentation/auth/pages/home_page.dart';
-import 'package:walkntalk/presentation/auth/pages/login.dart';
-import 'package:walkntalk/presentation/auth/pages/otp_screen.dart';
-import 'package:walkntalk/presentation/auth/pages/register.dart';
-import 'package:walkntalk/presentation/auth/pages/splash_page.dart';
 import 'package:walkntalk/presentation/profile/pages/profile_page.dart';
 
 late final FirebaseApp app;
 late final FirebaseAuth auth;
 
-class ProfileImageProvider extends ChangeNotifier {
-  String? _profileImageUrl;
-
-  String? get profileImageUrl => _profileImageUrl;
-
-  set profileImageUrl(String? url) {
-    _profileImageUrl = url;
-    notifyListeners();
-  }
-
-  Future<void> loadProfileImage() async {
-    try {
-      User? user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        final doc = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(user.uid)
-            .get();
-        final imageUrl = doc.data()?['profileImageUrl'] as String?;
-        if (imageUrl != null) {
-          profileImageUrl = imageUrl;
-        }
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error loading profile image: $e');
-      }
-    }
-  }
-}
+// class ProfileImageProvider extends ChangeNotifier {
+//   String? _profileImageUrl;
+//
+//   String? get profileImageUrl => _profileImageUrl;
+//
+//   set profileImageUrl(String? url) {
+//     _profileImageUrl = url;
+//     notifyListeners();
+//   }
+//
+//   Future<void> loadProfileImage() async {
+//     try {
+//       User? user = FirebaseAuth.instance.currentUser;
+//       if (user != null) {
+//         final doc = await FirebaseFirestore.instance
+//             .collection('users')
+//             .doc(user.uid)
+//             .get();
+//         final imageUrl = doc.data()?['profileImageUrl'] as String?;
+//         if (imageUrl != null) {
+//           profileImageUrl = imageUrl;
+//         }
+//       }
+//     } catch (e) {
+//       if (kDebugMode) {
+//         print('Error loading profile image: $e');
+//       }
+//     }
+//   }
+// }
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -59,6 +50,7 @@ void main() async {
   auth = FirebaseAuth.instanceFor(app: app);
 
   await FirebaseAppCheck.instance.activate(
+    ///todo:store strings in constants/constants.dart file
     webProvider: ReCaptchaV3Provider('CC0CB3E4-971C-467F-9906-29C5D79C6F99'),
   );
   FirebaseAppCheck.instance.setTokenAutoRefreshEnabled(true);
@@ -84,7 +76,7 @@ class MyApp extends StatelessWidget {
         title: 'Social',
         debugShowCheckedModeBanner: false,
         initialRoute: isLoggedIn ? 'home' : 'login',
-        onGenerateRoute: (settings) {
+        onGenerateRoute: (settings)
           switch (settings.name) {
             case '/':
               return MaterialPageRoute(builder: (context) => MyHomePage());
@@ -101,7 +93,13 @@ class MyApp extends StatelessWidget {
             case 'profile':
               return MaterialPageRoute(
                 builder: (context) =>
-                    ProfilePage(onEdit: () {}, onLogout: () {}),
+                    ProfilePage(onEdit: () {
+                      ///
+                    }, onLogout: ()async {
+                      //todo: make proper file and do that function there using provider preferably
+                      final prefs = await SharedPreferences.getInstance();
+                      await prefs.setBool('isLoggedIn', false);
+                    }),
               );
             case 'forgot_password':
               return MaterialPageRoute(builder: (context) => const ForgotPassword());

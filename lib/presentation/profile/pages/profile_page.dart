@@ -330,6 +330,11 @@ class _ProfilePageState extends State<ProfilePage> {
           .collection('Users')
           .doc(user?.uid)
           .update({'profileImageUrl': downloadUrl});
+      //update users profile on firestore email
+      if(user != null && downloadUrl != null){
+        await FirebaseAuth.instance.currentUser?.updatePhotoURL(downloadUrl);
+      }
+
       print('Profile image URL saved successfully!');
     } catch (e) {
       print('Error saving profile image URL to Firestore: $e');

@@ -5,6 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:walkntalk/firebase_options.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:walkntalk/presentation/auth/pages/forgot_password.dart';
+import 'package:walkntalk/presentation/auth/pages/google.dart';
+import 'package:walkntalk/presentation/auth/pages/home_page.dart';
+import 'package:walkntalk/presentation/auth/pages/login.dart';
+import 'package:walkntalk/presentation/auth/pages/otp_screen.dart';
+import 'package:walkntalk/presentation/auth/pages/register.dart';
+import 'package:walkntalk/presentation/auth/pages/splash_page.dart';
 import 'package:walkntalk/presentation/profile/pages/profile_page.dart';
 
 late final FirebaseApp app;
@@ -76,7 +83,8 @@ class MyApp extends StatelessWidget {
         title: 'Social',
         debugShowCheckedModeBanner: false,
         initialRoute: isLoggedIn ? 'home' : 'login',
-        onGenerateRoute: (settings)
+        onGenerateRoute: (settings) {
+          ///store routes in separate file
           switch (settings.name) {
             case '/':
               return MaterialPageRoute(builder: (context) => MyHomePage());

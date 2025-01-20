@@ -1,0 +1,39 @@
+# Flutter related
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+build/
+
+# IntelliJ/Android Studio
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# Android specific
+**/android/app/debug/
+**/android/app/profile/
+**/android/app/release/
+**/android/.gradle/
+**/android/.idea/
+
+# macOS specific
+.DS_Store
+
+# VS Code
+.vscode/
+
+# Log files
+*.log
+
+# Symbolication
+app.*.symbols
+app.*.map.json
+
+# Miscellaneous
+*.class
+*.pyc
+*.swp
+.history

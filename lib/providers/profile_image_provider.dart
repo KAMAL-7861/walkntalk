@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -28,10 +29,11 @@ class ProfileImageProvider extends ChangeNotifier {
       User? user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         final doc = await FirebaseFirestore.instance
-            .collection('Users')
+            .collection('users')
             .doc(user.uid)
             .get();
         final imageUrl = doc.data()?['profileImageUrl'] as String?;
+       log('got image: $imageUrl');
         if (imageUrl != null) {
           profileImageUrl = imageUrl;
         }
@@ -52,7 +54,7 @@ class ProfileImageProvider extends ChangeNotifier {
         User? user = FirebaseAuth.instance.currentUser;
         if (user != null) {
           await FirebaseFirestore.instance
-              .collection('Users')
+              .collection('users')
               .doc(user.uid)
               .update({'profileImageUrl': downloadUrl});
           profileImageUrl = downloadUrl; // Update provider state

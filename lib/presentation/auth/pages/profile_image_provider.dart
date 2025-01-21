@@ -1,18 +1,14 @@
 import 'dart:io';
-import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/widgets.dart';
-import 'package:provider/provider.dart';
-import 'package:walkntalk/main.dart';
-import '../../../firebase_options.dart';
 
 late FirebaseApp app;
 late FirebaseAuth auth;
 
-class ProfileImageProvider extends ChangeNotifier {
+class ProfileProvider extends ChangeNotifier {
   String? _profileImageUrl;
 
   String? get profileImageUrl => _profileImageUrl;
@@ -74,26 +70,26 @@ class ProfileImageProvider extends ChangeNotifier {
   }
 }
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-
-  try {
-    app = await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-    auth = FirebaseAuth.instanceFor(app: app);
-
-    await FirebaseAppCheck.instance.activate(
-      webProvider: ReCaptchaV3Provider('CC0CB3E4-971C-467F-9906-29C5D79C6F99'),
-    );
-
-    runApp(
-      ChangeNotifierProvider(
-        create: (_) => ProfileImageProvider()..loadProfileImage(),
-        child: const MyApp(isLoggedIn: true),
-      ),
-    );
-  } catch (e) {
-    print('Error initializing Firebase: $e');
-  }
-}
+// void main() async {
+//   WidgetsFlutterBinding.ensureInitialized();
+//
+//   try {
+//     app = await Firebase.initializeApp(
+//       options: DefaultFirebaseOptions.currentPlatform,
+//     );
+//     auth = FirebaseAuth.instanceFor(app: app);
+//
+//     await FirebaseAppCheck.instance.activate(
+//       webProvider: ReCaptchaV3Provider('CC0CB3E4-971C-467F-9906-29C5D79C6F99'),
+//     );
+//
+//     runApp(
+//       ChangeNotifierProvider(
+//         create: (_) => ProfileImageProvider()..loadProfileImage(),
+//         child: const MyApp(isLoggedIn: true),
+//       ),
+//     );
+//   } catch (e) {
+//     print('Error initializing Firebase: $e');
+//   }
+// }

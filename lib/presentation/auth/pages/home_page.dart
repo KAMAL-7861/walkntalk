@@ -1,4 +1,5 @@
 
+import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -8,6 +9,7 @@ import 'package:walkntalk/presentation/auth/pages/login.dart';
 import 'package:walkntalk/presentation/profile/pages/edit_profile_page.dart';
 import 'package:walkntalk/presentation/profile/pages/profile_page.dart';
 import 'package:walkntalk/presentation/search/pages/search_screen.dart';
+import 'package:walkntalk/providers/profile_image_provider.dart';
 
 class MyHomePage extends StatefulWidget {
   @override
@@ -54,8 +56,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   void initState() {
-    // get user profile
-     ProfileImageProvider().loadProfileImage();
     super.initState();
   }
   @override
@@ -74,7 +74,9 @@ class _MyHomePageState extends State<MyHomePage> {
       body: MultiProvider(
         providers: [
           //add providers here if u want to use them within project
-          ChangeNotifierProvider(create: (_) => ProfileImageProvider()),
+          ChangeNotifierProvider(create: (_) => ProfileImageProvider()
+           // todo: always load bug   ..loadProfileImage()
+          ),
         ],
         child: Center(
           child: _widgetOptions.elementAt(_selectedIndex),
@@ -123,9 +125,23 @@ class HomeScreen extends StatelessWidget {
         title: const Text('Home'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: logoutFunction,
-          ),
+          icon: const Icon(Icons.logout),
+          onPressed: logoutFunction,
+        ),
+          ///todo: use this icon after u figure out condition to  stop always load issue
+          // CircleAvatar(
+          //   radius: 20,
+          //   backgroundImage: Provider.of<ProfileImageProvider>(context, listen: true).profileImageUrl != null
+          //       ? Provider.of<ProfileImageProvider>(context, listen: true).profileImageUrl!.contains('http://') || Provider.of<ProfileImageProvider>(context, listen: true).profileImageUrl!.contains('https://') == true? NetworkImage(Provider.of<ProfileImageProvider>(context, listen: true).profileImageUrl.toString()) as ImageProvider<Object> : FileImage(File(Provider.of<ProfileImageProvider>(context, listen: true).profileImageUrl!))
+          //       : null,
+          //   backgroundColor: Colors.white12,
+          //   child: Provider.of<ProfileImageProvider>(context).profileImageUrl == null
+          //       ? Text(
+          //     (FirebaseAuth.instance.currentUser?.displayName?.substring(0, 1) ?? 'U').toUpperCase(),
+          //     style: const TextStyle(fontSize: 40, color: Colors.white),
+          //   )
+          //       : null,
+          // ),
         ],
       ),
       body: const Center(

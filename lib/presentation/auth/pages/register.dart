@@ -1,4 +1,5 @@
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:walkntalk/services/auth_service.dart';
@@ -35,6 +36,13 @@ class _MyregisterState extends State<Myregister> {
       // Save email to SharedPreferences
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setString('userEmail', emailController.text.trim());
+
+      // create doc on firestore
+       final userData = await FirebaseFirestore.instance.collection('users').add({
+         'email': emailController.text.trim(),
+         'name': userController.text.trim(),
+         'profileImageUrl': '',
+       });
 
       if (!context.mounted) return;
       Navigator.of(context).pushReplacementNamed('home');

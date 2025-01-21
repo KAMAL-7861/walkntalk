@@ -13,6 +13,7 @@ import 'package:walkntalk/presentation/auth/pages/otp_screen.dart';
 import 'package:walkntalk/presentation/auth/pages/register.dart';
 import 'package:walkntalk/presentation/auth/pages/splash_page.dart';
 import 'package:walkntalk/presentation/profile/pages/profile_page.dart';
+import 'package:walkntalk/services/profile_image_provider.dart';
 
 late final FirebaseApp app;
 late final FirebaseAuth auth;
@@ -86,8 +87,6 @@ class MyApp extends StatelessWidget {
         onGenerateRoute: (settings) {
           ///store routes in separate file
           switch (settings.name) {
-            case '/':
-              return MaterialPageRoute(builder: (context) => MyHomePage());
             case 'splash':
               return MaterialPageRoute(builder: (context) => const SplashPage());
             case 'home':

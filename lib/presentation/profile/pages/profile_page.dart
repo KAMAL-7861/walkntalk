@@ -1,78 +1,9 @@
 import 'dart:io';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import '../../../services/upload_to_firebase.dart';
-
-// Define a ChangeNotifier for managing state
-class ProfileImageProvider extends ChangeNotifier {
-  String? _profileImagePath;
-
-  String? get profileImagePath => _profileImagePath;
-
-  set profileImagePath(String? path) {
-    _profileImagePath = path;
-    notifyListeners(); // Notify listeners when the path changes
-  }
-//fetches profile image on  init
-  //todo: refator this code  as well
-  ///get pofile image code
-  Future<void> loadProfileImage() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      final  photoUrl = user.photoURL;
-      if (photoUrl != null) {
-        final profileDoc = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(user.uid)
-            .get();
-        if (profileDoc.exists) {
-          final imageUrl = profileDoc.data()?['profileImageUrl'] as String?;
-          if (imageUrl != null) {
-            _profileImagePath = imageUrl;
-          }
-        }
-      }
-
-    }
-  }
-}
-
-// Wrap your app with the ChangeNotifierProvider
-void main() {
-  runApp(
-    ChangeNotifierProvider(
-      create: (context) => ProfileImageProvider(),
-      child: const MyApp(),
-    ),
-  );
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: ProfilePage(
-        onEdit: () {
-          // Define what happens on edit
-          print('Edit profile pressed');
-        },
-        onLogout: () {
-          // Define what happens on logout
-          print('Logout pressed');
-        },
-      ),
-    );
-  }
-}
+import 'package:walkntalk/services/profile_image_provider.dart';
 
 class ProfilePage extends StatefulWidget {
   final VoidCallback onLogout;
@@ -88,9 +19,15 @@ class _ProfilePageState extends State<ProfilePage> {
   final ImagePicker _picker = ImagePicker();
 
   @override
+  void initState() {
+    super.initState();
+    Future.microtask(() {
+      context.read<ProfileImageProvider>().loadProfileImage();
+    });
+  }
+  @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
-    final profileProvider = Provider.of<ProfileImageProvider>(context);
 
     return WillPopScope(
       onWillPop: () async {
@@ -154,11 +91,11 @@ class _ProfilePageState extends State<ProfilePage> {
                       children: [
                         CircleAvatar(
                           radius: 50,
-                          backgroundImage: profileProvider.profileImagePath != null
-                              ? FileImage(File(profileProvider.profileImagePath!))
+                          backgroundImage: Provider.of<ProfileImageProvider>(context, listen: true).profileImageUrl != null
+                              ? Provider.of<ProfileImageProvider>(context, listen: true).profileImageUrl!.contains('http://') || Provider.of<ProfileImageProvider>(context, listen: true).profileImageUrl!.contains('https://') == true? NetworkImage(Provider.of<ProfileImageProvider>(context, listen: true).profileImageUrl.toString()) as ImageProvider<Object> : FileImage(File(Provider.of<ProfileImageProvider>(context, listen: true).profileImageUrl!))
                               : null,
                           backgroundColor: Colors.white12,
-                          child: profileProvider.profileImagePath == null
+                          child: Provider.of<ProfileImageProvider>(context).profileImageUrl == null
                               ? Text(
                             (user?.displayName?.substring(0, 1) ?? 'U').toUpperCase(),
                             style: const TextStyle(fontSize: 40, color: Colors.white),
@@ -170,7 +107,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           right: 0,
                           child: GestureDetector(
                             onTap: () async {
-                              await _pickImage(context, profileProvider); // Pass context and provider
+                              await _pickImage(context,Provider.of<ProfileImageProvider>(context,listen: false)); // Pass context and provider
                             },
                             child: const CircleAvatar(
                               radius: 16,
@@ -324,42 +261,16 @@ class _ProfilePageState extends State<ProfilePage> {
       final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
       if (pickedFile != null) {
         File imageFile = File(pickedFile.path);
-        provider.profileImagePath = pickedFile.path;
-
-        // Upload to Firebase Storage
-        String? downloadUrl = await uploadToFirebase(imageFile);
-        if (downloadUrl != null) {
-          print('Image uploaded successfully. Download URL: $downloadUrl');
-          saveProfileImage(downloadUrl); // Save the URL to Firestore
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Image upload failed.')),
-          );
-        }
+        await provider.saveProfileImage(imageFile);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Image upload failed.')),
+        );
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error picking image: $e')),
       );
-    }
-  }
-
-  Future<void> saveProfileImage(String downloadUrl) async {
-    try {
-      // Save to Firestore
-      User? user = FirebaseAuth.instance.currentUser;
-      await FirebaseFirestore.instance
-          .collection('Users')
-          .doc(user?.uid)
-          .update({'profileImageUrl': downloadUrl});
-      //update users profile on firestore email
-      if(user != null && downloadUrl != null){
-        await FirebaseAuth.instance.currentUser?.updatePhotoURL(downloadUrl);
-      }
-
-      print('Profile image URL saved successfully!');
-    } catch (e) {
-      print('Error saving profile image URL to Firestore: $e');
     }
   }
   }

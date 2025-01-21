@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_cloud_firestore/firebase_cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -13,12 +14,10 @@ late FirebaseApp app;
 late FirebaseAuth auth;
 
 class ProfileImageProvider extends ChangeNotifier {
-  String? _profileImageUrl;
+  String? profileImageUrl;
 
-  String? get profileImageUrl => _profileImageUrl;
-
-  set profileImageUrl(String? url) {
-    _profileImageUrl = url;
+  void updateProfileUrl(String? url) {
+    profileImageUrl = url;
     notifyListeners(); // Notify listeners of the change
   }
 
@@ -26,13 +25,20 @@ class ProfileImageProvider extends ChangeNotifier {
     try {
       User? user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        final doc = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(user.uid)
-            .get();
-        final imageUrl = doc.data()?['profileImageUrl'] as String?;
-        if (imageUrl != null) {
-          profileImageUrl = imageUrl;
+        final photoUrl = user.photoURL;
+        if (photoUrl == null) {
+          final doc = await FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.uid)
+              .get();
+          if (doc.exists) {
+            final imageUrl = doc.data()?['profileImageUrl'] as String?;
+            if (imageUrl != null) {
+              updateProfileUrl(imageUrl);
+            }
+          }
+        } else {
+          updateProfileUrl(photoUrl);
         }
       }
     } catch (e) {
@@ -48,11 +54,24 @@ class ProfileImageProvider extends ChangeNotifier {
         // Save the URL to Firestore
         User? user = FirebaseAuth.instance.currentUser;
         if (user != null) {
-          await FirebaseFirestore.instance
+          final doc = await FirebaseFirestore.instance
               .collection('users')
-              .doc(user.uid)
-              .update({'profileImageUrl': downloadUrl});
-          profileImageUrl = downloadUrl; // Update provider state
+              .doc(user.uid);
+          final getDoc = await doc.get();
+          final previousProfileImage = getDoc.data()?['profileImageUrl'] as String?;
+          ///delete previous image first
+          if (previousProfileImage != '') {
+            deleteImageFromFirebase(previousProfileImage!);
+          }
+
+          doc.update({'profileImageUrl': downloadUrl});
+          profileImageUrl = downloadUrl; //or
+          updateProfileUrl(downloadUrl);
+
+          //update users profile on firestore email
+          if (user != null && downloadUrl != null) {
+            await user.updatePhotoURL(downloadUrl);
+          }
         }
       }
     } catch (e) {
@@ -72,28 +91,12 @@ class ProfileImageProvider extends ChangeNotifier {
       return null;
     }
   }
-}
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  ///delete previous image
+  Future<void> deleteImageFromFirebase(String url) async {
+    final ref = FirebaseStorage.instance.refFromURL(url);
+    final res = await ref.delete();
 
-  try {
-    app = await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-    auth = FirebaseAuth.instanceFor(app: app);
-
-    await FirebaseAppCheck.instance.activate(
-      webProvider: ReCaptchaV3Provider('CC0CB3E4-971C-467F-9906-29C5D79C6F99'),
-    );
-
-    runApp(
-      ChangeNotifierProvider(
-        create: (_) => ProfileImageProvider()..loadProfileImage(),
-        child: const MyApp(isLoggedIn: true),
-      ),
-    );
-  } catch (e) {
-    print('Error initializing Firebase: $e');
+    ///no checks for res for now
   }
 }
